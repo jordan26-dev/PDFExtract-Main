@@ -10,7 +10,7 @@ all_images = []
 img_idx = [0]
 displayed_img = []
 
-def right_arrow(all_images, current_img):
+def right_arrow(all_images, current_img, what_text):
     if img_idx[-1] < len(all_images) -1:
         new_idx = img_idx[-1] + 1
         img_idx.pop()
@@ -21,13 +21,14 @@ def right_arrow(all_images, current_img):
         new_img = all_images[img_idx[-1]]
         current_img = display_images(new_img)
         displayed_img.append(current_img)
+        what_text.set("image " + str(img_idx[-1] + 1) + " out of " + str(len(all_images)))
     elif img_idx == len(all_images) - 1:
         print("index out of range")
         if displayed_img:
             displayed_img[-1].grid_forget()
             displayed_img.pop()
             
-def left_arrow(all_images, current_img):
+def left_arrow(all_images, current_img, what_text):
     if img_idx[-1] >= 1:
         new_idx = img_idx[-1] -1
         img_idx.pop()
@@ -38,6 +39,7 @@ def left_arrow(all_images, current_img):
         new_img = all_images[img_idx[-1]]
         current_img = display_images(new_img)
         displayed_img.append(current_img)
+        what_text.set("image " + str(img_idx[-1] + 1) + " out of " + str(len(all_images)))
     elif img_idx == len(all_images) - 1:
         print("index out of range")
         if displayed_img:
@@ -114,11 +116,14 @@ def open_file():
         img_menu = Frame(root, width=800, height=60)
         img_menu.grid(columnspan=3, rowspan=1, row=2)
 
-        what_img = Label(root, text="image 1 of 5", font=("shanti", 10))
+        what_text = StringVar()
+        what_img = Label(root, textvariable=what_text, font=("shanti", 10))
+        what_text.set("image " + str(img_idx[-1] + 1) + " out of " + str(len(all_images)))
+        
         what_img.grid(row=2, column=1)
 
-        prev_img = display_icon('starterFiles/arrow_l.png', 2, 0, E, lambda:left_arrow(all_images, current_image))
-        next_img = display_icon('starterFiles/arrow_r.png', 2, 2, W, lambda:right_arrow(all_images, current_image))
+        prev_img = display_icon('starterFiles/arrow_l.png', 2, 0, E, lambda:left_arrow(all_images, current_image, what_text))
+        next_img = display_icon('starterFiles/arrow_r.png', 2, 2, W, lambda:right_arrow(all_images, current_image, what_text))
 
 
         save_img = Frame(root, width=800, height=60, bg="#c8c8c8")
