@@ -6,12 +6,62 @@ from functions import display_logo, display_icon, display_textbox, extract_image
 
 
 page_contents = []
+all_images = []
+img_idx = [0]
+displayed_img = []
+
+def right_arrow(all_images, current_img):
+    if img_idx[-1] < len(all_images) -1:
+        new_idx = img_idx[-1] + 1
+        img_idx.pop()
+        img_idx.append(new_idx)
+        if displayed_img:
+            displayed_img[-1].grid_forget()
+            displayed_img.pop()
+        new_img = all_images[img_idx[-1]]
+        current_img = display_images(new_img)
+        displayed_img.append(current_img)
+    elif img_idx == len(all_images) - 1:
+        print("index out of range")
+        if displayed_img:
+            displayed_img[-1].grid_forget()
+            displayed_img.pop()
+            
+def left_arrow(all_images, current_img):
+    if img_idx[-1] >= 1:
+        new_idx = img_idx[-1] -1
+        img_idx.pop()
+        img_idx.append(new_idx)
+        if displayed_img:
+            displayed_img[-1].grid_forget()
+            displayed_img.pop()
+        new_img = all_images[img_idx[-1]]
+        current_img = display_images(new_img)
+        displayed_img.append(current_img)
+    elif img_idx == len(all_images) - 1:
+        print("index out of range")
+        if displayed_img:
+            displayed_img[-1].grid_forget()
+            displayed_img.pop()
+
 
 def copy_text(content):
     root.clipboard_clear()
     root.clipboard_append(content[-1])
 
-
+def save_all(images):
+    counter = 1 
+    for i in images:
+        if i.mode != "RGB":
+            i = i.convert("RGB")
+        i.save("img" + str(counter) + ".png", format="png")
+        counter += 1
+        
+def save_image(i):
+    if i.mode != "RGB":
+        i = i.convert("RGB")
+    i.save("img.png", format="png")
+    
 root = Tk()
 root.geometry('+%d+%d'%(350,10)) #place GUI at x=350, y=10
 
@@ -25,6 +75,11 @@ main_content = Frame(root, width=800, height=250, bg="#20bebe")
 main_content.grid(columnspan=3, rowspan=2, row=4)
 
 def open_file():
+    
+    for i in img_idx:
+        img_idx.pop()
+    img_idx.append(0)
+    
     browse_text.set("loading...")
     file = askopenfile(parent=root, mode='rb', filetypes=[("Pdf file", "*.pdf")])
     if file:
@@ -35,10 +90,22 @@ def open_file():
         page_content = page_content.replace('\u2122', "'")
         page_contents.append(page_content)
         
-        images = extract_images(page)
-        img = images[0]
+        if displayed_img:
+            displayed_img[-1].grid_forget()
+            displayed_img.pop()
         
-        display_images(img)
+        for i in range(0, len(all_images)):
+            all_images.pop()
+        
+        images = extract_images(page)
+        
+        for i in images:
+            all_images.append(i)
+        
+        img = images[img_idx[-1]]
+        
+        current_image = display_images(img)
+        displayed_img.append(current_image)
         
         #show text box on row 2 col 0
         display_textbox(page_content, 4, 0, root)
@@ -50,16 +117,16 @@ def open_file():
         what_img = Label(root, text="image 1 of 5", font=("shanti", 10))
         what_img.grid(row=2, column=1)
 
-        prev_img = display_icon('starterFiles/arrow_l.png', 2, 0, E)
-        next_img = display_icon('starterFiles/arrow_r.png', 2, 2, W)
+        prev_img = display_icon('starterFiles/arrow_l.png', 2, 0, E, lambda:left_arrow(all_images, current_image))
+        next_img = display_icon('starterFiles/arrow_r.png', 2, 2, W, lambda:right_arrow(all_images, current_image))
 
 
         save_img = Frame(root, width=800, height=60, bg="#c8c8c8")
         save_img.grid(columnspan=3, rowspan=1, row=3)
 
         copyText_btn = Button(root, text="copy text", command=lambda:copy_text(page_contents), font=("shanti", 10), height=1, width=15)
-        saveAll_btn = Button(root, text="save all images", font=("shanti", 10), height=1, width=15)
-        save_btn = Button(root, text="save image", font=("shanti", 10), height=1, width=15)
+        saveAll_btn = Button(root, text="save all images", command=lambda:save_all(images), font=("shanti", 10), height=1, width=15)
+        save_btn = Button(root, text="save image", command=lambda:save_image(images[img_idx[-1]]), font=("shanti", 10), height=1, width=15)
 
         copyText_btn.grid(row=3, column=0)
         saveAll_btn.grid(row=3, column=1)
